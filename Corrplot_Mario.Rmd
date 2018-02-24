@@ -1,0 +1,78 @@
+---
+title: "EDA: Correlation Plot of Cognitive skills and electoral participation (CHILE)"
+output: html_notebook
+---
+
+```{r}
+rm(list = ls())
+library(readr)
+library(dplyr)
+library(corrplot)
+library(RColorBrewer)
+
+#Load the data
+elec_ch <- read_csv("electoral_chile.csv")
+
+elec_ch$region <- as.factor(elec_ch$region)
+elec_ch$province <- as.factor(elec_ch$province)
+elec_ch$head_hh <- as.factor(elec_ch$head_hh)
+elec_ch$ed_father <- as.factor(elec_ch$ed_father)
+elec_ch$ed_mother <- as.factor(elec_ch$ed_mother)
+elec_ch$city <- as.factor(elec_ch$city)
+#elec_ch$date_birth <- as.Date(elec_ch$date_birth)
+
+#str(elec_ch)
+```
+
+
+
+```{r}
+
+#Remove non-numeric values such as: region - 3
+# province - 4
+# date_birth - 6 
+# head_hh - 9
+# municipality -11
+# city - 12
+# ed_father - 28
+# ed_mother - 29
+# emp_father - 33
+# emp_mother  - 34
+
+df <- elec_ch
+
+df <- df[-c(1, 3, 4, 6, 9, 11, 12, 28, 29, 33, 34)]
+
+df$school_id <- as.numeric(df$school_id)
+df$year_finish_hs <- as.numeric(df$year_finish_hs)
+df$n_family <- as.numeric(df$n_family)
+df$n_family_work <- as.numeric(df$n_family_work)
+df$income_group <- as.numeric(df$income_group)
+df$school_owners <- as.numeric(df$school_owners)
+df$grades <- as.numeric(df$grades)
+df$grades_converted <- as.numeric(df$grades_converted)
+df$verbal <- as.numeric(df$verbal)
+df$math <-  as.numeric(df$math)
+df$std_math <-  as.numeric(df$std_math)
+df$history <-  as.numeric(df$history) 
+df$science <- as.numeric(df$science)
+df$registered_vote <- as.numeric(df$registered_vote)
+df$female <- as.numeric(df$female)
+df$id <- as.numeric(df$id)
+df$work <- as.numeric(df$work)
+df$parents_alive <- as.numeric(df$parents_alive)
+df$school_type <- as.numeric(df$school_type)
+
+```
+
+
+```{r}
+##Create a correlation Plot
+
+col <- brewer.pal(4,"RdYlBu") #selecting color palette
+
+corrplot(cor(df, use = "complete.obs"), col = col, tl.cex = 0.6, number.cex = .6, title = "Correlation between (numeric) Variables", type = "upper", mar = c(1,0,1,0), diag = FALSE, method = "number")
+```
+
+
+
