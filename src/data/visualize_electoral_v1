@@ -12,12 +12,21 @@ library(ggplot2)        # plot data
 df <- read_csv("/Users/melissamock/Documents/electoral_chile.csv")
 
 #create table of type of school and voter registration 
-df.tab <- table(df$school_type, df$registered_vote)
+df.schooltab <- table(df$school_type, df$registered_vote)
 
 #rename columns and rows
-colnames(df.tab) <- c("Not Registered", "Registered") 
-rownames(df.tab) <- c("Sci/Hum", "Tech")
+colnames(df.schooltab) <- c("Not Registered", "Registered") 
+rownames(df.schooltab) <- c("Sci/Hum", "Tech")
 
 #print
-df.tab
+df.schooltab
+
+#create table of socio-economic status and voter registration
+df.setab <- table(df$income_group, df$registered_vote)
+
+#rename columns
+colnames(df.setab) <- c("Not Registered", "Registered") 
+
+#print
+df.setab
 
