@@ -1,0 +1,32 @@
+#install packages
+library(readr)          # easier reading of flat files
+library(dplyr)          # data manipulation functions
+library(tidyr)          # tools for tidy datasets
+library(magrittr)       # ceci n'est pas un pipe
+library(stringr)        # easier manipulation of strings
+library(reshape2)       # a much more flexible reshaping for our purpose here
+library(here)           # easy path location and setting
+library(ggplot2)        # plot data
+
+#read in file
+df <- read_csv("/Users/melissamock/Documents/electoral_chile.csv")
+
+#create table of type of school and voter registration 
+df.schooltab <- table(df$school_type, df$registered_vote)
+
+#rename columns and rows
+colnames(df.schooltab) <- c("Not Registered", "Registered") 
+rownames(df.schooltab) <- c("Sci/Hum", "Tech")
+
+#print
+df.schooltab
+
+#create table of socio-economic status and voter registration
+df.setab <- table(df$income_group, df$registered_vote)
+
+#rename columns
+colnames(df.setab) <- c("Not Registered", "Registered") 
+
+#print
+df.setab
+
