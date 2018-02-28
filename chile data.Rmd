@@ -1,0 +1,62 @@
+---
+title: "Untitled"
+author: "LizhiziCui"
+date: "2/28/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+chile <- read.csv(file.choose())
+hist(chile$region )
+hist(chile$n_family )
+hist(chile$income_group )
+hist(chile$grades)
+hist(chile$verbal )
+hist(chile$math)
+hist(chile$history)
+hist(chile$science)
+hist(chile$school_type)
+
+library(ggplot2)
+par(mfrow=c(4,2))
+
+plot(chile$verbal, chile$registered_vote)
+plot(chile$math, chile$registered_vote) 
+plot(chile$history, chile$registered_vote) 
+plot(chile$science, chile$registered_vote)
+plot(chile$income_group, chile$registered_vote) 
+plot(chile$n_family, chile$registered_vote) 
+
+chile$female <- factor(chile$female)
+chile$income_group <- factor(chile$income_group)
+logit_i <- glm(registered_vote ~ income_group, data = chile, family = "binomial")
+logit_i
+plot(logit_i)
+logit_f <- glm(registered_vote ~ female + income_group, data = chile, family = "binomial")
+logit_f
+plot(logit_f)
+logit_t <- glm(registered_vote ~ female + income_group + math + verbal + history + science, data = chile, family = "binomial")
+logit_t
+plot(logit_t)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
