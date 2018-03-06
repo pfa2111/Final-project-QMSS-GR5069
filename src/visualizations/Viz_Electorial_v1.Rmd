@@ -2,7 +2,7 @@
 title: "Viz_Electorial_v1"
 output: html_document
 ---
-#Electorial Data Visualizations 
+##Electorial Data Visualizations 
 
 
 ## Regressions
