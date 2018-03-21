@@ -1,0 +1,80 @@
+---
+title: "Working Document - Final Project"
+author: "Jiaqing Zhao"
+date: "2/28/2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+# Prepare the data
+library(ggplot2)
+library(dplyr)
+chile <- read.csv("electoral_chile.csv")
+chile$head_hh <- ifelse(chile$head_hh == "Father", 1, ifelse(chile$head_hh =="Mother", 0 , NA))
+
+```
+
+```{r}
+chile_young <- chile %>% filter(year > 1988 & year < 1991)
+chile_young$ed_father_score <- ifelse(chile_young$ed_father == "College" | chile_young$ed_father == "Incomeplete Collge", 2, ifelse(chile_young$ed_father == "No education", 0, 2))
+chile_young$ed_mother_score <- ifelse(chile_young$ed_mother == "College" | chile_young$ed_mother == "Incomeplete Collge", 2, ifelse(chile_young$ed_mother == "No education", 0, 2))
+chile_young$avg_par_edu <- (chile_young$ed_father_score + chile_young$ed_mother_score)/2
+```
+
+
+```{r}
+# checking the differences between gender and grades
+chile_2 <- na.omit(chile_young)
+new <- chile_2 %>% group_by(registered_vote) %>% summarise(avg_history_score = mean(std_history), avg_math_score = mean(std_math), avg_verbal_score = mean(std_verbal), avg_science_score = mean(std_science))
+
+ggplot(new) + geom_bar(aes(x = registered_vote, y = avg_history_score), stat = "identity", position = "dodge", width = .4, fill = "#FF6666") + coord_flip() + theme(panel.background = element_rect(fill = "white", colour = "grey50"))# + geom_hline(yintercept = 54.5)
+
+ggplot(new, aes(x = registered_vote, y = avg_math_score)) + geom_bar(stat = "identity", position = "dodge", width = .4, fill = "#FF6666") +  coord_flip() + theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+
+ggplot(new, aes(x = registered_vote, y = avg_verbal_score)) + geom_bar(stat = "identity", position = "dodge", width = .4, fill = "#FF6666") + coord_flip() + theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+
+ggplot(new, aes(x = registered_vote, y = avg_science_score)) + geom_bar(stat = "identity", position = "dodge", width = .4, fill = "#FF6666") + coord_flip() + theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+```
+
+Students who register votes have higher grades. Females have higher grades in general.
+
+
+```{r}
+# Explore relationship between income group and ratio of registered votes within that group
+new2 <- chile_2 %>% group_by(income_group, registered_vote) %>% summarise(sum = n())
+temp <- new2 %>% group_by(income_group) %>% summarise(sum_new = sum(sum)) #%>% summarise()
+temp2 <- new2 %>% filter(registered_vote == 1)
+temp3 <- merge(temp,temp2,by = "income_group")
+temp3$ratio <- temp3$sum/temp3$sum_new
+ggplot(temp3, aes(x = income_group, y = ratio)) + geom_bar(stat = "identity", position = "dodge", width = .4, fill= "#FF0000") + coord_flip() + theme(panel.background = element_rect(fill = "white", colour = "grey50"))# + geom_hline(yintercept = 54.5)
+```
+
+```{r}
+library(corrplot)
+chile_3 <- chile_2 %>% select(registered_vote, avg_par_edu, n_family, n_family_work, head_hh, income_group, std_grades, std_verbal, std_math, std_history,std_science, std_notas, female)
+cor_chile <- cor(chile_3)
+corrplot(cor_chile, method = "circle")
+```
+```{r}
+summary(chile_2)
+```
+
+
+The higher the income group, the higher percent of student will register vote
+
+```{r}
+# preliminary linear logit model
+l1 <- glm(registered_vote ~ as.factor(head_hh) * as.factor(female) + avg_par_edu + std_history + std_math + income_group +  as.factor(province) ,family=binomial(link='logit'), data = chile_2)
+summary(l1)
+```
+
+All significant. We can start with these variables: gender, head_hh, grades, and income_group.
+
+```{r}
+library(stargazer)
+stargazer(l1)
+```
+
+
