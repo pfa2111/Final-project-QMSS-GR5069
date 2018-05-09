@@ -17,6 +17,8 @@ For a longer discussion on the effect of cognitive skills on electoral participa
 
 # Methods
 
+The inital data set included every student who took the PSU test in 2007, regardless of the age. There is the possibility that some older people had taken the test in 2007, since there is no age restrictions. For instance, a person who finished high school at the age of 30 may have taken the test. We decided to restrict the sample to students who were born betwen 1988 and 1991 and who finished high school in 2007, since our substantive focus is to study determinants of electoral participation among the youth. The data set that restricts the sample to this subset is located in the folder "processed".
+
 We used both inferential and predictive models on our data. We wanted to better understand past voter behavior and predict the likelihood of voting based on the profile of a recent graduate. Our methods included Linear Regression, Logistic Regression, Random Forests, SVM, Naive Bayes, KNN and LDA. Our data is just not predictive enough with all of the aucs not much greater than .5.
 
 Our predictive methods failed. Since only 14% of the population in our data voted, our models were incredibly biased. We tried a wide range and couldn’t find one that worked, so we decided to focus on the inferential findings instead. We learned from our presentation feedback that next time we should approach the predictive models with bootstrap samples to make up for the bias.
