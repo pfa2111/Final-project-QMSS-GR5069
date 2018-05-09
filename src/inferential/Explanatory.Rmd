@@ -1,0 +1,154 @@
+---
+title: "Working Document - Final Project"
+author: "Jiaqing Zhao"
+date: "2/28/2018"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+#Part 1: Data
+
+```{r}
+# Prepare the data
+library(ggplot2)
+library(dplyr)
+chile <- read.csv("electoral_chile.csv")
+```
+
+
+```{r}
+# recoding head_hh
+chile$head_hh <- ifelse(chile$head_hh == "Father", 1, ifelse(chile$head_hh =="Mother", 0 , NA))
+# filter out unwanted observations
+chile_young <- chile %>% filter(year_finish_hs == 2007) %>% na.omit(std_math) %>% na.omit(std_grades) %>% na.omit(std_verbal)
+chile_young <- chile_young %>% filter(year > 1988 & year < 1991)
+
+# recode parents education
+chile_young$ed_father_score <- ifelse(chile_young$ed_father == "College" | chile_young$ed_father == "Incomeplete Collge", 2, ifelse(chile_young$ed_father == "No education", 0, 2))
+chile_young$ed_mother_score <- ifelse(chile_young$ed_mother == "College" | chile_young$ed_mother == "Incomeplete Collge", 2, ifelse(chile_young$ed_mother == "No education", 0, 2))
+chile_young$avg_par_edu <- (chile_young$ed_father_score + chile_young$ed_mother_score)/2
+
+# change grades from continuous to categorical
+chile_young$std_grades_decent <- ntile(chile_young$std_grades, 10) 
+chile_young$std_verbal_decent <- ntile(chile_young$std_verbal, 10) 
+chile_young$std_math_decent <- ntile(chile_young$std_math, 10) 
+chile_young$std_history_decent <- ntile(chile_young$std_history, 10) 
+
+# save new file
+write.csv(chile_young,"newdataset_chile.csv")
+```
+
+Now we explore the NAs
+```{r}
+
+#filter for NAs
+na_test <- chile %>% 
+  filter(is.na(verbal))
+
+#filter out NAs
+test <- chile %>% 
+  filter(!is.na(verbal))
+
+
+hist(na_test$income_group,
+     main = "Score NAs - Income Group Distribution",
+     xlab = "Income Group")
+hist(test$income_group,
+     ylim=c(0,35000),
+     main = "Score Excluded NAs - Income Group Distribution",
+     xlab = "Income Group")
+hist(chile$income_group,
+     ylim=c(0,35000),
+     main = "All data - Income Group Distribution",
+     xlab = "Income Group")
+```
+
+
+#Part 2: Exploration of variables of interests
+
+```{r}
+# checking the differences between gender and grades
+new <- chile_young %>% group_by(registered_vote) %>% summarise(avg_history_score = mean(std_history), avg_math_score = mean(std_math), avg_verbal_score = mean(std_verbal), avg_science_score = mean(std_science))
+
+ggplot(new) + geom_bar(aes(x = registered_vote, y = avg_history_score), stat = "identity", position = "dodge", width = .4, fill = "#FF6666") + coord_flip() + theme(panel.background = element_rect(fill = "white", colour = "grey50"))# + geom_hline(yintercept = 54.5)
+
+ggplot(new, aes(x = registered_vote, y = avg_math_score)) + geom_bar(stat = "identity", position = "dodge", width = .4, fill = "#FF6666") +  coord_flip() + theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+
+ggplot(new, aes(x = registered_vote, y = avg_verbal_score)) + geom_bar(stat = "identity", position = "dodge", width = .4, fill = "#FF6666") + coord_flip() + theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+
+ggplot(new, aes(x = registered_vote, y = avg_science_score)) + geom_bar(stat = "identity", position = "dodge", width = .4, fill = "#FF6666") + coord_flip() + theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+```
+
+Students who register votes have higher grades. Females have higher grades in general.
+
+
+```{r}
+# Explore relationship between income group and ratio of registered votes within that group
+new2 <- chile_young %>% group_by(income_group, registered_vote) %>% summarise(sum = n())
+temp <- new2 %>% group_by(income_group) %>% summarise(sum_new = sum(sum)) #%>% summarise()
+temp2 <- new2 %>% filter(registered_vote == 1)
+temp3 <- merge(temp,temp2,by = "income_group")
+temp3$ratio <- temp3$sum/temp3$sum_new
+ggplot(temp3, aes(x = income_group, y = ratio)) + geom_bar(stat = "identity", position = "dodge", width = .4, fill= "#FF0000") + coord_flip() + theme(panel.background = element_rect(fill = "white", colour = "grey50"))# + geom_hline(yintercept = 54.5)
+```
+
+The higher the income group, the higher percent of student will register vote
+
+#Part 3: Correlations and Models
+
+```{r}
+# variable selection based on corrplot
+library(corrplot)
+chile_3 <- chile_young %>% select(registered_vote, avg_par_edu, n_family, n_family_work, head_hh, income_group, std_grades, std_verbal, std_math, std_history,std_science, std_notas, female)
+cor_chile <- cor(chile_3)
+corrplot(cor_chile, method = "circle")
+```
+verbal correlates with grades, math but not history or science
+history correlates with science but not other grades.
+
+```{r}
+# preliminary linear logit model
+l <- glm(registered_vote ~ female * head_hh + std_history + std_verbal + income_group + avg_par_edu + as.factor(region) , family=binomial(link='logit'), data = chile_young)
+summary(l)
+```
+
+```{r}
+# update 1
+l1 <- glm(registered_vote ~ as.factor(female) + std_history + std_verbal + income_group + as.factor(school_owners) + avg_par_edu  +  as.factor(region) ,family=binomial(link='logit'), data = chile_young)
+summary(l1)
+```
+
+
+```{r}
+# update 2
+l2 <- lm(registered_vote ~ as.factor(female) + as.factor(std_history_decent) + as.factor(income_group) +  as.factor(std_verbal_decent) + as.factor(school_owners) + avg_par_edu  +  as.factor(region) , data = chile_young)
+summary(l2)
+```
+
+Part 4: Outputs
+```{r}
+library(popbio)
+
+# verbal score plot
+logi.hist.plot(chile_young$std_verbal, chile_young$registered_vote, logi.mod = 1, boxp = FALSE, type = "hist", col ="gray")
+# income effect
+logi.hist.plot(chile_young$income_group, chile_young$registered_vote, logi.mod = 1, boxp = FALSE, type = "hist", col ="gray")
+```
+
+All significant. We can start with these variables: gender, head_hh, grades, and income_group.
+
+```{r}
+library(stargazer)
+stargazer(l1)
+```
+
+# Appendix: Bayesian Hierarchical Models
+
+```{r eval=F}
+# takes too long to run
+library(brms);options(mc.cores = parallel::detectCores())
+fit1 <- brm(registered_vote ~ as.factor(female) + std_history + std_verbal + (1 + std_verbal|income_group) + (1+ as.factor(school_owners)) ,family=binomial(link='logit'), data = chile_young)
+```
+
+
