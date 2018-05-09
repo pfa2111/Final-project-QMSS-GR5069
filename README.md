@@ -11,22 +11,22 @@ The purpose of our investigation is two-fold. First, we would like to offer our 
 
 # Research questions
 
-This project has two research question: 1) wwhat is the effect of cognitive skills on political participation? 2) What set of variables, including cognitive skills, household demographics (in particular, income) and school characteristics, are the most predictive of political participation?
+This project has two research question: 1) What is the effect of cognitive skills on political participation? 2) What set of variables, including cognitive skills, household demographics (in particular, income) and school characteristics, are the most predictive of political participation?
 
 For a longer discussion on the effect of cognitive skills on electoral participation, and the relevance of studying voter turnout with individual-level data and behavioral outcomes, please see Final-project-QMSS-GR5069/reference/motivation/cognitive-skills-electoral-PA-DRAFT.pdf, which is a first draft of paper using this data set. 
 
 # Methods
 
-We used both inferential and predictive models on our data. We wanted to better understand voter behavior in the past and predict the likelihood of voting based on the profile of a recent graduate. Our methods included Linear Regression, Logistic Regression, Random Forests, SVM, naive bayes, knn and LDA. It seems that our data is just not predictive enough with all of the aucs not much greater than .5.
+We used both inferential and predictive models on our data. We wanted to better understand past voter behavior and predict the likelihood of voting based on the profile of a recent graduate. Our methods included Linear Regression, Logistic Regression, Random Forests, SVM, Naive Bayes, KNN and LDA. Our data is just not predictive enough with all of the aucs not much greater than .5.
 
-Our predictive methods failed. Since only 14% of the population in our data voted, our models were incredibly biased. We tried a wide range and couldn’t find one that worked, so we decided to focus on the inferential findings instead. 
+Our predictive methods failed. Since only 14% of the population in our data voted, our models were incredibly biased. We tried a wide range and couldn’t find one that worked, so we decided to focus on the inferential findings instead. We learned from our presentation feedback that next time we should approach the predictive models with bootstrap samples to make up for the bias.
 
 # Insights
 We discovered that the turnout of young voters is very low, allowing us to assume that this population is generally apathetic. Consequently, the small percentage of voters made it difficult to predict who is likely to vote in future elections. We were able to find some important insights from those who did vote. 
 
 Our findings reveal the percentage of voters increased in the highest income group compared to the lowest income group. We also discovered that the higher the income, the higher the tests scores and grades, leading us to believe that wealthier students receive a better education. 
 
-Out of all the testing categories, higher verbal scores are correlated with increased voting. We can assume from our findings that increased literacy leads to increased political participation. 
+Out of all the testing categories, higher verbal scores are correlated with increased voting. We can assume from our findings that increased literacy is correlated with increased political participation. 
 
 # Recommendations 
 
