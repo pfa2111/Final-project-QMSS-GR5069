@@ -1,0 +1,139 @@
+---
+title: "Predictions"
+author: "Jiaqing Zhao"
+date: "4/16/2018"
+output: html_document
+---
+```{r}
+# Prepare the data
+library(ggplot2)
+library(dplyr)
+chile <- read.csv("newdataset_chile.csv")
+```
+
+```{r}
+# sample a smaller dataset
+v <- sample_n(chile[chile$registered_vote == 1,],10000, replace = T)
+nv <- sample_n(chile[chile$registered_vote == 0,],10000, replace = T)
+```
+```{r}
+chile_pred <- rbind(v,nv)
+```
+
+```{r}
+chile_pred$registered_vote <- as.factor(chile_pred$registered_vote)
+
+#chile_pred_high <- chile_pred %>% filter(income_group >= 5)
+chile_pred$hi <- ifelse(chile_pred$income_group == 8 , 1, 0)
+chile_pred$hm <- ifelse(chile_pred$std_math > .7, 1, 0)
+
+smp_size <- floor(0.75 * nrow(chile_pred))
+set.seed(123)
+train_ind <- sample(seq_len(nrow(chile_pred)), size = smp_size)
+train <- chile_pred[train_ind, ]
+test <- chile_pred[-train_ind, ]
+chile_pred$head_hh <- as.factor(chile_pred$head_hh)
+chile_pred$female <- as.factor(chile_pred$female)
+chile_pred$income_group <- as.factor(chile_pred$income_group)
+
+# randomForest
+library(randomForest)
+
+RF =randomForest(registered_vote ~ head_hh * female + avg_par_edu + std_history + hm * hi, data = train, na.action=na.exclude, ntree = 700 )
+```
+```{r}
+library(ROCR)
+
+pred <- predict(RF, test)
+table(test$registered_vote)
+prediction <- prediction(as.numeric(pred) , as.numeric(test$registered_vote))
+auc <- performance(prediction, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+```
+
+
+# naive bayes
+```{r}
+library(e1071)
+# model
+
+nb <- naiveBayes(registered_vote ~ head_hh + female + avg_par_edu + std_history + hm + hi, data = train)
+
+pred_nb <- predict(nb, test, type="class")
+
+
+
+# prediction
+
+prediction <- prediction(as.numeric(pred_nb) , as.numeric(test$registered_vote))
+
+auc <- performance(prediction, measure = "auc")
+
+auc <- auc@y.values[[1]]
+
+auc
+```
+```{r}
+smp_size <- floor(0.75 * nrow(chile_pred))
+set.seed(123)
+train_ind <- sample(seq_len(nrow(chile_pred)), size = smp_size)
+train <- chile_pred[train_ind, ]
+test <- chile_pred[-train_ind, ]
+```
+
+# LDA
+```{r}
+library(MASS)
+lda <- lda(registered_vote ~ head_hh * female + avg_par_edu + std_history + hm * hi, data = train)
+
+
+
+# prediction  
+
+pred_lda <- predict(lda, test, type="class")
+prediction <- prediction(as.numeric(pred_lda[[1]]) , as.numeric(test$registered_vote))
+
+auc <- performance(prediction, measure = "auc")
+
+auc <- auc@y.values[[1]]
+
+auc
+```
+
+```{r}
+library(dplyr)
+
+t <- train %>% dplyr::select(registered_vote, head_hh, female, avg_par_edu, std_history, hm, hi) %>% na.omit()
+te <- test %>% dplyr::select(registered_vote, head_hh, female, avg_par_edu, std_history, hm, hi)%>% na.omit()
+```
+
+# bart machine
+
+```{r}
+options(java.parameters = "-Xmx20g")
+
+
+library(bartMachine)
+
+
+bart <- bartMachine(X = t[,-1], y = t[,1], mem_cache_for_speed = FALSE)
+
+
+
+# predictions
+
+pred_bart <- predict(bart, new_data = te[,-1])
+prediction <- prediction(as.numeric(pred_bart) , as.numeric(te[,1]))
+
+auc <- performance(prediction, measure = "auc")
+
+auc <- auc@y.values[[1]]
+
+auc
+```
+
+
+no matter we use the original dataset or the downsized dataset we are not getting good results.
+
+
